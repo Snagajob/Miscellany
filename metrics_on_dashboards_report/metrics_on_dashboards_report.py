@@ -5,6 +5,8 @@ except ImportError:
     print("please make sure the datadogpy library is downloaded in this machine or environment first.  You can find installation instructions at https://github.com/DataDog/datadogpy")
     quit()
 import re
+import json
+
 
 def get_all_dashboard_id_list(resp, is_screenboard):
     getter = ''
@@ -42,13 +44,19 @@ def get_metric_report(ids_list, metrics_to_eval, is_screenboard):
         board_resp = resp.get(getter_two)
         str_resp = str(board_resp)
         for metric in metrics_to_eval:
-                if str_resp.find(metric) != -1:
-                    #build the dashboards with metrics string for each board, adding title of the board and metric name
-                    #encoding was necessary here, as non-ascii characters are used in our front-end
-                    if board_title != resp[getter].encode('utf-8'):
-                        board_title = resp[getter].encode('utf-8')
-                        print('\n\tBoard: ' + board_title)
-                    print('\n\t\t Metric: ' + metric)
+            start_pos = 0
+            str_pos = str_resp.find(metric, start_pos)
+            while str_pos != -1:
+                # build the dashboards with metrics string for each board, adding title of the board and metric name
+                # encoding was necessary here, as non-ascii characters are used in our front-end
+                if board_title != resp[getter].encode('utf-8'):
+                    board_title = resp[getter].encode('utf-8')
+                    print('\n\tBoard: ' + board_title)
+                curly_end = str_resp.find('}', str_pos)
+
+                print('\t\t Metric: ' + str_resp[str_pos:curly_end+1])
+                # print('\t\t str_resp: ' + json.dumps(board_resp))
+                str_pos = str_resp.find(metric, curly_end)
 
 
 # user input logic flow
